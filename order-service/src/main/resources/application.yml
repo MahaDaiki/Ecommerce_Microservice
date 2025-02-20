@@ -1,0 +1,22 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: ORDER-SERVICE
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: public
+        format_sql: true
+    show-sql: true
+
+  datasource:
+    username: postgres
+    password: post2001
+    url: jdbc:postgresql://localhost:5432/ecommerce_db
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
