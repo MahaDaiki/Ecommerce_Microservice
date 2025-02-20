@@ -30,12 +30,9 @@ public class Order {
     @Column(name = "order_id", unique = true, nullable = false, updatable = false)
     private Integer orderId;
 
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @JsonFormat(pattern = "dd-MM-yyyy__HH:mm:ss:SSSSSS", shape = JsonFormat.Shape.STRING)
-    @DateTimeFormat(pattern = "dd-MM-yyyy__HH:mm:ss:SSSSSS")
     @Column(name = "order_date")
-    private LocalDateTime orderDate;
+    @Builder.Default
+    private LocalDateTime orderDate = LocalDateTime.now();
 
     @Column(name = "order_desc")
     private String orderDesc;
@@ -43,6 +40,12 @@ public class Order {
     @Column(name = "order_fee", columnDefinition = "decimal")
     private Double orderFee;
 
+    @Column(name = "is_payed")
+    private boolean isPayed = false;
+
     @Column(name = "product_id")
     private Integer productId;
+
+    @Column(name = "user_id")
+    private Integer userId;
 }
