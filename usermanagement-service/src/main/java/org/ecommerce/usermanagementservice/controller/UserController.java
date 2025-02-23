@@ -20,6 +20,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO request) {
+        System.out.println("Register endpoint hit with email: " + request.getEmail());
         UserResponseDTO response = userService.registerUser(request);
         return ResponseEntity.ok(response);
     }

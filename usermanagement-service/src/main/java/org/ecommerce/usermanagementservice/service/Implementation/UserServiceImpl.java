@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
         UsersResource usersResource = realmResource.users();
 
         UserRepresentation userRep = new UserRepresentation();
-        userRep.setUsername(request.getEmail());
+        userRep.setUsername(request.getUsername());
         userRep.setEmail(request.getEmail());
         userRep.setEnabled(true);
         userRep.setEmailVerified(true);
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
         Response response = usersResource.create(userRep);
         if (response.getStatus() == 201) {
             String keycloakUserId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
-            assignRoleToUser(keycloak, request.getEmail(), "User");  // Assign default role
+            assignRoleToUser(keycloak, request.getEmail(), "USER");
             return keycloakUserId;
         } else {
             throw new RuntimeException("Failed to create user in Keycloak");
@@ -112,30 +112,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO loginUser(UserRequestDTO request) {
+
+
+        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = userOptional.get();
+        String username = user.getUsername();
+
         Keycloak keycloak = KeycloakBuilder.builder()
                 .serverUrl(KEYCLOAK_SERVER_URL)
                 .realm(REALM)
                 .clientId(CLIENT_ID)
                 .clientSecret(CLIENT_SECRET)
                 .grantType(OAuth2Constants.PASSWORD)
-                .username(request.getEmail())
+                .username(username)
                 .password(request.getPassword())
                 .build();
 
         AccessTokenResponse tokenResponse = keycloak.tokenManager().getAccessToken();
 
         if (tokenResponse != null && tokenResponse.getToken() != null) {
-            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
-            if (userOptional.isEmpty()) {
-                throw new RuntimeException("User not found");
-            }
-
-            User user = userOptional.get();
             UserResponseDTO response = userMapper.toDto(user);
             response.setToken(tokenResponse.getToken());
             return response;
         } else {
-            throw new RuntimeException("Invalid username or password");
+            throw new RuntimeException("Invalid email or password");
         }
     }
+
 }
