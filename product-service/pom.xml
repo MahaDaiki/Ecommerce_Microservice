@@ -8,24 +8,11 @@
 		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>order-service</artifactId>
+	<groupId>com.oumaima</groupId>
+	<artifactId>product-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>order-service</name>
-	<description>order-service</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>product-service</name>
+	<description>product-service</description>
 	<properties>
 		<java.version>17</java.version>
 		<mapstruct.version>1.5.3.Final</mapstruct.version>
@@ -34,6 +21,7 @@
 		<mockito.version>5.3.1</mockito.version>
 		<junit.version>5.8.1</junit.version>
 	</properties>
+
 	<dependencies>
 		<!-- Spring Boot Dependencies -->
 		<dependency>
@@ -65,11 +53,6 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 			<version>${postgresql.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
 		</dependency>
 
 		<!-- Utility Dependencies -->
@@ -120,7 +103,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<!-- permet de configurer la phase de construction du projet -->
 
 	<build>
