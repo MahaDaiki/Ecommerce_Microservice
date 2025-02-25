@@ -11,7 +11,7 @@ spring:
     import: configserver:http://localhost:8888  # URL du serveur de configuration
     fail-fast: true
     retry:
-      max-attempts: 6  # Nombre maximum de tentatives de récupération
+      max-attempts: 6  # Nombre maximum de tentatives de rï¿½cupï¿½ration
       initial-interval: 1000  # Intervalle initial en millisecondes
       max-interval: 2000  # Intervalle maximum en millisecondes
       multiplier: 1.1  # Multiplicateur pour l'augmentation de l'intervalle
@@ -20,7 +20,7 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true  # Activer le localisateur de découverte
+          enabled: true  # Activer le localisateur de dï¿½couverte
           lower-case-service-id: true  # Convertir les IDs de service en minuscules
       routes:
         # Route pour le service utilisateur
@@ -73,7 +73,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka  # URL du serveur Eureka
   instance:
-    prefer-ip-address: true  # Préférer l'adresse IP
+    prefer-ip-address: true  # Prï¿½fï¿½rer l'adresse IP
 
 # Configuration des endpoints de gestion
 management:
@@ -83,13 +83,13 @@ management:
         include: "*"  # Exposer tous les endpoints
   endpoint:
     health:
-      show-details: always  # Afficher les détails de la santé
+      show-details: always  # Afficher les dï¿½tails de la santï¿½
   health:
     circuitbreakers:
-      enabled: true  # Activer les indicateurs de santé des circuit breakers
+      enabled: true  # Activer les indicateurs de santï¿½ des circuit breakers
   zipkin:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans  # Endpoint de traçage Zipkin
+      endpoint: http://localhost:9411/api/v2/spans  # Endpoint de traï¿½age Zipkin
 
 # Configuration Resilience4j pour les circuit breakers
 resilience4j:
