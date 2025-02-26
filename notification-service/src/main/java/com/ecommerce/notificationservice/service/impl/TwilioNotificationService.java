@@ -3,6 +3,7 @@ package com.ecommerce.notificationservice.service.impl;
 import com.ecommerce.notificationservice.config.TwilioConfig;
 import com.ecommerce.notificationservice.dto.request.OrderEvent;
 import com.ecommerce.notificationservice.dto.request.PaymentEvent;
+import com.ecommerce.notificationservice.exception.customExceptions.SmsDeliveryException;
 import com.ecommerce.notificationservice.service.NotificationService;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -33,9 +34,9 @@ public class TwilioNotificationService implements NotificationService {
             );
 
             sendSms(paymentEvent.userPhoneNumber(), message);
-            log.info("Payment confirmation sent to user ID: {}", paymentEvent.userId());
+//            log.info("Payment confirmation sent to user ID: {}", paymentEvent.userId());
         } catch (Exception e) {
-            log.error("Failed to send payment confirmation: {}", e.getMessage(), e);
+//            log.error("Failed to send payment confirmation: {}", e.getMessage(), e);
         }
     }
 
@@ -50,19 +51,22 @@ public class TwilioNotificationService implements NotificationService {
             );
 
             sendSms(orderEvent.userPhoneNumber(), message);
-            log.info("Order shipped notification sent to user ID: {}", orderEvent.userId());
+//            log.info("Order shipped notification sent to user ID: {}", orderEvent.userId());
         } catch (Exception e) {
-            log.error("Failed to send order shipped notification: {}", e.getMessage(), e);
+//
         }
     }
 
     @Override
     public void sendTestNotification(String phoneNumber, String message) {
         try {
+            log.info("Attempting to send SMS to: {}", phoneNumber);
             sendSms(phoneNumber, message);
-            log.info("Test notification sent to: {}", phoneNumber);
+            log.info("SMS sent successfully to: {}", phoneNumber);
         } catch (Exception e) {
-            log.error("Failed to send test notification: {}", e.getMessage(), e);
+            log.error("SMS delivery failed to: {}", phoneNumber, e);
+            throw new SmsDeliveryException(phoneNumber,
+                    "Failed to deliver SMS notification: " + e.getMessage(), e);
         }
     }
 
@@ -73,6 +77,5 @@ public class TwilioNotificationService implements NotificationService {
                 messageBody
         ).create();
 
-        log.info("SMS sent with SID: {}", message.getSid());
     }
 }

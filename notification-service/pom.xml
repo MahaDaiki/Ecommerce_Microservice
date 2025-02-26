@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
+        <version>3.2.2</version> <!-- Compatible with Spring Cloud 2023.0.0 -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.ecommerce</groupId>
@@ -30,6 +30,7 @@
         <java.version>17</java.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <twilio.version>9.14.1</twilio.version>
+        <lombok.version>1.18.30</lombok.version> <!-- Added explicit Lombok version -->
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -79,6 +80,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version> <!-- Explicit version -->
             <optional>true</optional>
         </dependency>
     </dependencies>
@@ -104,6 +106,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version> <!-- Added version reference -->
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
