@@ -17,12 +17,11 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping("/test")
+    @PostMapping("/send")
     public ResponseEntity<Map<String, String>> sendTestNotification(
             @RequestParam String phoneNumber,
             @RequestParam String message) {
 
-        log.info("Received test notification request for phone: {}", phoneNumber);
         notificationService.sendTestNotification(phoneNumber, message);
 
         Map<String, String> response = new HashMap<>();
