@@ -1,136 +1,185 @@
-# Configuration du serveur
-server:
-  port: 8080
-
-# Configuration de l'application Spring
 spring:
   application:
     name: api-gateway
-
   config:
-    import: configserver:http://localhost:8888  # URL du serveur de configuration
-    fail-fast: true
-    retry:
-      max-attempts: 6  # Nombre maximum de tentatives de récupération
-      initial-interval: 1000  # Intervalle initial en millisecondes
-      max-interval: 2000  # Intervalle maximum en millisecondes
-      multiplier: 1.1  # Multiplicateur pour l'augmentation de l'intervalle
-
+    import: configserver:http://localhost:8888
   cloud:
+    vault:
+      enabled: false
     gateway:
       discovery:
         locator:
-          enabled: true  # Activer le localisateur de découverte
-          lower-case-service-id: true  # Convertir les IDs de service en minuscules
+          enabled: true
+          lower-case-service-id: true
       routes:
-        # Route pour le service utilisateur
         - id: user-service
-          uri: lb://user-service
+          uri: lb://USER-MANAGEMENT
           predicates:
-            - Path=/api/v1/users/**
+            - Path=/api/users/**
           filters:
+            - RewritePath=/api/users/(?<segment>.*), /$\{segment}
             - name: CircuitBreaker
               args:
-                name: userServiceCircuitBreaker
+                name: userService
                 fallbackUri: forward:/fallback/user
+            # Propagation du token d'authentification
+            - AddRequestHeader=Authorization, ${request.headers.Authorization}
 
-        # Route pour le service produit
         - id: product-service
-          uri: lb://product-service
+          uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
           filters:
+            - RewritePath=/api/v1/products/(?<segment>.*), /${segment}
             - name: CircuitBreaker
               args:
-                name: productServiceCircuitBreaker
+                name: productService
                 fallbackUri: forward:/fallback/product
+            - AddRequestHeader=Authorization, ${request.headers.Authorization}
 
-        # Route pour le service de commande
         - id: order-service
-          uri: lb://order-service
+          uri: lb://ORDER-SERVICE
           predicates:
-            - Path=/api/v1/orders/**
+            - Path=/api/orders/**
           filters:
+            - RewritePath=/api/orders/(?<segment>.*), /$\{segment}
             - name: CircuitBreaker
               args:
-                name: orderServiceCircuitBreaker
+                name: orderService
                 fallbackUri: forward:/fallback/order
+            - AddRequestHeader=Authorization, ${request.headers.Authorization}
 
-        # Route pour le service de paiement
         - id: payment-service
-          uri: lb://payment-service
+          uri: lb://PAYMENT-SERVICE
           predicates:
-            - Path=/api/v1/payments/**
+            - Path=/api/payments/**
           filters:
+            - RewritePath=/api/payments/(?<segment>.*), /$\{segment}
             - name: CircuitBreaker
               args:
-                name: paymentServiceCircuitBreaker
+                name: paymentService
                 fallbackUri: forward:/fallback/payment
+            - AddRequestHeader=Authorization, ${request.headers.Authorization}
 
-# Configuration d'Eureka
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<segment>.*), /$\{segment}
+            - name: CircuitBreaker
+              args:
+                name: notificationService
+                fallbackUri: forward:/fallback/notification
+            - AddRequestHeader=Authorization, ${request.headers.Authorization}
+
+    # Configuration pour se connecter au Config Server
+    config:
+      uri: http://localhost:8888
+      fail-fast: true
+      retry:
+        max-attempts: 6
+        initial-interval: 1000
+        max-interval: 2000
+        multiplier: 1.1
+
+# Configuration Eureka pour le service discovery
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka  # URL du serveur Eureka
+      defaultZone: http://localhost:8761/eureka/
   instance:
-    prefer-ip-address: true  # Préférer l'adresse IP
+    prefer-ip-address: true
 
-# Configuration des endpoints de gestion
+# Configuration pour Resilience4j (Circuit Breaker)
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+      productService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+      orderService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+      paymentService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+      notificationService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+  timelimiter:
+    instances:
+      userService:
+        timeoutDuration: 4s
+      productService:
+        timeoutDuration: 4s
+      orderService:
+        timeoutDuration: 4s
+      paymentService:
+        timeoutDuration: 4s
+      notificationService:
+        timeoutDuration: 4s
+
+# Configuration du logging pour Sleuth et Zipkin
+spring.zipkin:
+  base-url: http://localhost:9411
+  sender:
+    type: web
+spring.sleuth:
+  sampler:
+    probability: 1.0
+
 management:
   endpoints:
     web:
       exposure:
-        include: "*"  # Exposer tous les endpoints
+        include: "*"
   endpoint:
     health:
-      show-details: always  # Afficher les détails de la santé
+      show-details: always
   health:
     circuitbreakers:
-      enabled: true  # Activer les indicateurs de santé des circuit breakers
-  zipkin:
-    tracing:
-      endpoint: http://localhost:9411/api/v2/spans  # Endpoint de traçage Zipkin
+      enabled: true
 
-# Configuration Resilience4j pour les circuit breakers
-resilience4j:
-  circuitbreaker:
-    instances:
-      userServiceCircuitBreaker:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
-
-      productServiceCircuitBreaker:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
-
-      orderServiceCircuitBreaker:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
-
-      paymentServiceCircuitBreaker:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
+server:
+  port: 8090
