@@ -1,0 +1,51 @@
+server:
+  port: 1010
+
+spring:
+  application:
+    name: notification-service
+  config:
+    import: optional:configserver:http://localhost:8888
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+  cloud:
+    config:
+      enabled: true
+      uri: http://localhost:8888
+      fail-fast: false
+
+# Eureka client configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+# Twilio configuration - Replace with your Twilio credentials
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:AC8874ab06f3028c662e9b713685ff1005}
+  auth-token: ${TWILIO_AUTH_TOKEN:80b2fbbb595cbb02441159d4dfaaa3f3}
+  phone-number: ${TWILIO_PHONE_NUMBER:+14422596794}
+
+# Kafka topics
+app:
+  kafka:
+    topics:
+      payment-completed: payment-completed-topic
+      order-shipped: order-shipped-topic
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
