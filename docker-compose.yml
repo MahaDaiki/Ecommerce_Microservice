@@ -27,24 +27,182 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      KEYCLOAK_SERVER_URL: http://keycloak:8086
+      KEYCLOAK_REALM: ecommerce
     depends_on:
       - discovery-service
+      - keycloak
     networks:
       - ecommerce-network
 
-  # Autres services...
-
-  # Services externes
-  rabbitmq:
-    image: rabbitmq:3-management
+  usermanagement-service:
+    build:
+      context: ./usermanagement-service
+      dockerfile: Dockerfile
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "9999:8888"
+    environment:
+      KEYCLOAK_SERVER_URL: http://keycloak:8086
+      KEYCLOAK_REALM: ecommerce
+      KEYCLOAK_CLIENT_ID: user-service
+      KEYCLOAK_CLIENT_SECRET: ZA7MHj3y6xDnbMJ3BRjW7DahshDkY7IR
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/usermanagement_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - discovery-service
+      - keycloak
+      - postgres
     networks:
       - ecommerce-network
 
-  # ELK, Zipkin, etc.
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - discovery-service
+      - postgres
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - discovery-service
+      - kafka
+      - postgres
+    networks:
+      - ecommerce-network
+
+  payment-service:
+    build:
+      context: ./paiement
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - discovery-service
+      - kafka
+      - postgres
+    networks:
+      - ecommerce-network
+
+  # Kafka et ses dépendances
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ecommerce-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ecommerce-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+    networks:
+      - ecommerce-network
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: 123
+      KC_HOSTNAME: keycloak
+    ports:
+      - "8086:8080"
+    command: start-dev
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-network
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15.2
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: 123
+      POSTGRES_USER: postgres
+      POSTGRES_MULTIPLE_DATABASES: "keycloak,usermanagement_db,product_db,order_db,payment_db"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - C:/Users/user/Desktop/Ecommerce_Microservice/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-network
+
+  # PgAdmin (optionnel) pour gérer la base de données
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-network
 
 networks:
   ecommerce-network:
     driver: bridge
+
+volumes:
+  postgres-data:
