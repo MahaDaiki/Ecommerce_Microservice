@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  config-service:
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - ecommerce-network
+
+  discovery-service:
+    build:
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-service
+    networks:
+      - ecommerce-network
+
+  api-gateway:
+    build:
+      context: ./api-gateaway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+    networks:
+      - ecommerce-network
+
+  # Autres services...
+
+  # Services externes
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ecommerce-network
+
+  # ELK, Zipkin, etc.
+
+networks:
+  ecommerce-network:
+    driver: bridge

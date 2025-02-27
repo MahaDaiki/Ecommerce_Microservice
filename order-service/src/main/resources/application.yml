@@ -15,7 +15,7 @@ spring:
 
   datasource:
     username: postgres
-    password: post2001
+    password: admin
     url: jdbc:postgresql://localhost:5432/ecommerce_db
     driver-class-name: org.postgresql.Driver
     hikari:
