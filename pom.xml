@@ -12,6 +12,7 @@
     <modules>
         <module>api-gateaway</module>
         <module>usermanagement-service</module>
+        <module>notification-service</module>
         <module>product-service</module>
         <module>order-service</module>
         <module>paiement</module>
