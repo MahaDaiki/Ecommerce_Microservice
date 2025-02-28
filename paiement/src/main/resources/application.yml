@@ -3,9 +3,9 @@ spring:
   application:
     name: Auth
   datasource:
-    url: jdbc:postgresql://localhost:5432/Paiement
+    url: jdbc:postgresql://localhost:5432/ecommerce_db
     username: postgres
-    password: 0
+    password: 123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
